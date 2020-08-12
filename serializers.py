@@ -10,17 +10,16 @@ class SerializerFactory:
     def __init__(self):
         pass
 
-    def get_serializer(self, block: BasicBlock):
-        if isinstance(block, TextBlock):
-            return TextSerializer(block)
-        if isinstance(block, HeaderBlock):
-            return HeaderBlockSerializer(block)
-        if isinstance(block, SubheaderBlock):
-            return SubheaderBlockSerializer(block)
-        if isinstance(block, PageBlock):
-            return PageBlockSerializer(block)
-        if isinstance(block, ImageBlock):
-            return ImageBlockSerializer(block)
+    def get_serializer(self, block: BasicBlock, **kwargs):
+        print(block.type)
+        serializer_class = {
+            TextBlock: TextSerializer,
+            HeaderBlock: HeaderBlockSerializer,
+            SubheaderBlock: SubheaderBlockSerializer,
+            PageBlock: PageBlockSerializer,
+            ImageBlock: ImageBlockSerializer
+        }[type(block)]
+        return serializer_class(block, **kwargs)
 
 
 class Seralizer:
