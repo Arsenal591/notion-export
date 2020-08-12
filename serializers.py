@@ -18,7 +18,8 @@ class SerializerFactory:
             BulletedListBlock: UnorderedListBlockSerializer,
             NumberedListBlock: NumberedListBlockSerializer,
             PageBlock: PageBlockSerializer,
-            ImageBlock: ImageBlockSerializer
+            ImageBlock: ImageBlockSerializer,
+            ToggleBlock: UnorderedListBlockSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
