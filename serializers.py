@@ -19,6 +19,7 @@ class SerializerFactory:
             BulletedListBlock: UnorderedListBlockSerializer,
             NumberedListBlock: NumberedListBlockSerializer,
             QuoteBlock: QuoteBlockSerializer,
+            DividerBlock: DividerBlockSerializer,
             PageBlock: PageBlockSerializer,
             ImageBlock: ImageBlockSerializer,
             ToggleBlock: UnorderedListBlockSerializer,
@@ -75,6 +76,10 @@ class NumberedListBlockSerializer(AbstractListBlockSerializer):
 class QuoteBlockSerializer(Seralizer):
     def serialize(self) -> str:
         return '> {}\n'.format(self.block.title)
+
+class DividerBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        return '---\n'
 
 
 # todo: add a state machine here, to add extra \n after listblock, quoteblock etc
