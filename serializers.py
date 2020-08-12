@@ -11,7 +11,6 @@ class SerializerFactory:
         pass
 
     def get_serializer(self, block: BasicBlock, **kwargs):
-        print(block.type)
         serializer_class = {
             TextBlock: TextSerializer,
             HeaderBlock: HeaderBlockSerializer,
