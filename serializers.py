@@ -16,6 +16,7 @@ class SerializerFactory:
             HeaderBlock: HeaderBlockSerializer,
             SubheaderBlock: SubheaderBlockSerializer,
             BulletedListBlock: UnorderedListBlockSerializer,
+            NumberedListBlock: NumberedListBlockSerializer,
             PageBlock: PageBlockSerializer,
             ImageBlock: ImageBlockSerializer
         }[type(block)]
@@ -48,13 +49,20 @@ class SubheaderBlockSerializer(Seralizer):
         return "## {}\n".format(self.block.title)
 
 
-class UnorderedListBlockSerializer(Seralizer):
+class AbstractListBlockSerializer(Seralizer):
+    mark = None
     def serialize(self) -> str:
-        texts = [" " * (2 * self.level) + "- {}\n".format(self.block.title)]
+        texts = [" " * (2 * self.level) + self.mark + " {}\n".format(self.block.title)]
         f = SerializerFactory()
         for child in self.block.children:
             texts.append(f.get_serializer(child, level=self.level + 1).serialize())
         return ''.join(texts)
+
+class UnorderedListBlockSerializer(AbstractListBlockSerializer):
+    mark = '-'
+
+class NumberedListBlockSerializer(AbstractListBlockSerializer):
+    mark = '1.'
 
 
 class PageBlockSerializer(Seralizer):
