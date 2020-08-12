@@ -15,6 +15,7 @@ class SerializerFactory:
             TextBlock: TextSerializer,
             HeaderBlock: HeaderBlockSerializer,
             SubheaderBlock: SubheaderBlockSerializer,
+            SubsubheaderBlock: SubsubheaderBlockSerializer,
             BulletedListBlock: UnorderedListBlockSerializer,
             NumberedListBlock: NumberedListBlockSerializer,
             PageBlock: PageBlockSerializer,
@@ -48,6 +49,11 @@ class HeaderBlockSerializer(Seralizer):
 class SubheaderBlockSerializer(Seralizer):
     def serialize(self) -> str:
         return "## {}\n".format(self.block.title)
+
+
+class SubsubheaderBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        return "### {}\n".format(self.block.title)
 
 
 class AbstractListBlockSerializer(Seralizer):
