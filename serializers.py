@@ -15,6 +15,7 @@ class SerializerFactory:
             TextBlock: TextSerializer,
             HeaderBlock: HeaderBlockSerializer,
             SubheaderBlock: SubheaderBlockSerializer,
+            BulletedListBlock: UnorderedListBlockSerializer,
             PageBlock: PageBlockSerializer,
             ImageBlock: ImageBlockSerializer
         }[type(block)]
@@ -22,8 +23,9 @@ class SerializerFactory:
 
 
 class Seralizer:
-    def __init__(self, block: Block):
+    def __init__(self, block: Block, level=0):
         self.block = block
+        self.level = level
 
     def serialize(self) -> str:
         raise NotImplementedError
@@ -32,7 +34,7 @@ class Seralizer:
 class TextSerializer(Seralizer):
     def serialize(self) -> str:
         if self.block.title:
-            return self.block.title + '\n\n'
+            return " " * (2 * self.level) + self.block.title + '\n'
         return ''
 
 
@@ -44,6 +46,15 @@ class HeaderBlockSerializer(Seralizer):
 class SubheaderBlockSerializer(Seralizer):
     def serialize(self) -> str:
         return "## {}\n".format(self.block.title)
+
+
+class UnorderedListBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        texts = [" " * (2 * self.level) + "- {}\n".format(self.block.title)]
+        f = SerializerFactory()
+        for child in self.block.children:
+            texts.append(f.get_serializer(child, level=self.level + 1).serialize())
+        return ''.join(texts)
 
 
 class PageBlockSerializer(Seralizer):
