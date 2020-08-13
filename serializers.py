@@ -23,6 +23,7 @@ class SerializerFactory:
             PageBlock: PageBlockSerializer,
             ImageBlock: ImageBlockSerializer,
             ToggleBlock: UnorderedListBlockSerializer,
+            TodoBlock: TodoBlockSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
@@ -108,3 +109,11 @@ class ImageBlockSerializer(Seralizer):
             file_name = "{}-{}{}".format(base, url_parsed.path.split('/')[-2], ext)
         img.save("images/" + file_name)
         return "![{}]({} \"{}\")\n".format(self.block.caption, "images/" + file_name, self.block.caption)
+
+
+class TodoBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        if self.block.checked:
+            return "\u2713 ~~{}~~\n".format(self.block.title)
+        else:
+            return "\u25A1 {}\n".format(self.block.title)
