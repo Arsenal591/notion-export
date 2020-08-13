@@ -19,6 +19,7 @@ class SerializerFactory:
             BulletedListBlock: UnorderedListBlockSerializer,
             NumberedListBlock: NumberedListBlockSerializer,
             QuoteBlock: QuoteBlockSerializer,
+            CalloutBlock: QuoteBlockSerializer,
             DividerBlock: DividerBlockSerializer,
             PageBlock: PageBlockSerializer,
             ImageBlock: ImageBlockSerializer,
