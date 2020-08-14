@@ -5,6 +5,8 @@ from notion.block import *
 from PIL import Image
 import requests
 
+from patch import PatchedTextBlock
+
 
 class SerializerFactory:
     def __init__(self):
@@ -12,7 +14,7 @@ class SerializerFactory:
 
     def get_serializer(self, block: BasicBlock, **kwargs):
         serializer_class = {
-            TextBlock: TextSerializer,
+            PatchedTextBlock: TextSerializer,
             HeaderBlock: HeaderBlockSerializer,
             SubheaderBlock: SubheaderBlockSerializer,
             SubsubheaderBlock: SubsubheaderBlockSerializer,

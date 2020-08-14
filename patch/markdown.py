@@ -35,14 +35,19 @@ def patched_notion_to_markdown(notion):
             else -1,
         )
 
+        is_equation = False
         for f in sorted_format:
             if f[0] in _NOTION_TO_MARKDOWN_MAPPER:
                 if stripped:
                     markdown += _NOTION_TO_MARKDOWN_MAPPER[f[0]]
             if f[0] == "a":
                 markdown += "["
+            if f[0] == "e":
+                is_equation = True
+                markdown += "$$"
 
-        markdown += stripped
+        if not is_equation:
+            markdown += stripped
 
         for f in reversed(sorted_format):
             if f[0] in _NOTION_TO_MARKDOWN_MAPPER:
@@ -50,6 +55,8 @@ def patched_notion_to_markdown(notion):
                     markdown += _NOTION_TO_MARKDOWN_MAPPER[f[0]]
             if f[0] == "a":
                 markdown += "]({})".format(f[1])
+            if f[0] == "e":
+                markdown += "{}$$".format(f[1])
 
         markdown += trailing_whitespace
 
