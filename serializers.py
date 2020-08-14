@@ -30,7 +30,12 @@ class SerializerFactory:
             TodoBlock: TodoBlockSerializer,
             CollectionViewBlock: TableSerializer,
             CodeBlock: CodeBlockSerializer,
-            BookmarkBlock: BookmarkBlockSerializer,
+            BookmarkBlock: MediaBlockSerializer,
+            EmbedOrUploadBlock: MediaBlockSerializer,
+            VideoBlock: MediaBlockSerializer,
+            FileBlock: MediaBlockSerializer,
+            AudioBlock: MediaBlockSerializer,
+            PDFBlock: MediaBlockSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
@@ -168,6 +173,8 @@ class CodeBlockSerializer(Seralizer):
         return "```{}\n{}\n```\n".format(self.block.language, self.block.title)
 
 
-class BookmarkBlockSerializer(Seralizer):
+class MediaBlockSerializer(Seralizer):
     def serialize(self) -> str:
-        return "[{}]({})\n".format(self.block.title, self.block.link)
+        text = getattr(self.block, 'title', self.block._type)
+        link = getattr(self.block, 'link', self.block.source)
+        return "[{}]({})\n".format(text, link)
