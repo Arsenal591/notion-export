@@ -29,6 +29,7 @@ class SerializerFactory:
             ToggleBlock: UnorderedListBlockSerializer,
             TodoBlock: TodoBlockSerializer,
             CollectionViewBlock: TableSerializer,
+            CodeBlock: CodeBlockSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
@@ -159,3 +160,8 @@ class TableSerializer(Seralizer):
             output += format_row(values)
             
         return output
+
+
+class CodeBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        return "```{}\n{}\n```\n".format(self.block.language, self.block.title)
