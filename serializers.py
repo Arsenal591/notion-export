@@ -119,9 +119,9 @@ class ImageBlockSerializer(Seralizer):
 class TodoBlockSerializer(Seralizer):
     def serialize(self) -> str:
         if self.block.checked:
-            return "\u2713 ~~{}~~\n".format(self.block.title)
+            return "- [x] ~~{}~~\n".format(self.block.title)
         else:
-            return "\u25A1 {}\n".format(self.block.title)
+            return "- [ ] {}\n".format(self.block.title)
 
 
 # todo: support inline table blocks here
