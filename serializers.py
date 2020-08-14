@@ -124,6 +124,7 @@ class TodoBlockSerializer(Seralizer):
             return "\u25A1 {}\n".format(self.block.title)
 
 
+# todo: support inline table blocks here
 class TableSerializer(Seralizer):
     def serializer_cell(self, item) -> str:
         if item is None:
@@ -141,7 +142,7 @@ class TableSerializer(Seralizer):
         order = list(schema.keys())
         for view in block.views:
             if isinstance(view, TableView):
-                order = [x['property'] for x in view.get('format.table_properties')]
+                order = [x['property'] for x in view.get('format.table_properties') if x['property']  in schema]
 
         def format_row(row):
             return "| " + " | ".join(row) + " |\n"
