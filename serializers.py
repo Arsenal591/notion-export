@@ -30,6 +30,7 @@ class SerializerFactory:
             TodoBlock: TodoBlockSerializer,
             CollectionViewBlock: TableSerializer,
             CodeBlock: CodeBlockSerializer,
+            BookmarkBlock: BookmarkBlockSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
@@ -165,3 +166,8 @@ class TableSerializer(Seralizer):
 class CodeBlockSerializer(Seralizer):
     def serialize(self) -> str:
         return "```{}\n{}\n```\n".format(self.block.language, self.block.title)
+
+
+class BookmarkBlockSerializer(Seralizer):
+    def serialize(self) -> str:
+        return "[{}]({})\n".format(self.block.title, self.block.link)
