@@ -2,6 +2,7 @@ from io import BytesIO
 from pathlib import Path
 
 from notion.block import *
+from notion.collection import TableView, CollectionRowBlock
 from PIL import Image
 import requests
 
@@ -27,6 +28,7 @@ class SerializerFactory:
             ImageBlock: ImageBlockSerializer,
             ToggleBlock: UnorderedListBlockSerializer,
             TodoBlock: TodoBlockSerializer,
+            CollectionViewBlock: TableSerializer,
         }[type(block)]
         return serializer_class(block, **kwargs)
 
@@ -120,3 +122,39 @@ class TodoBlockSerializer(Seralizer):
             return "\u2713 ~~{}~~\n".format(self.block.title)
         else:
             return "\u25A1 {}\n".format(self.block.title)
+
+
+class TableSerializer(Seralizer):
+    def serializer_cell(self, item) -> str:
+        if item is None:
+            return ""
+        if isinstance(item, list):
+            return ",".join([self.serializer_cell(x) for x in item])
+        if isinstance(item, Block):
+            return item.title
+        return str(item)
+
+
+    def serialize(self) -> str:
+        block = self.block  # type: CollectionViewBlock
+        schema = block.collection.get("schema")
+        order = list(schema.keys())
+        for view in block.views:
+            if isinstance(view, TableView):
+                order = [x['property'] for x in view.get('format.table_properties')]
+
+        def format_row(row):
+            return "| " + " | ".join(row) + " |\n"
+
+        output = format_row([schema[key]['name'] for key in order])
+        output += format_row(['---'] * len(order))
+        for row in block.collection.get_rows():
+            values = []
+            for key in order:
+                if key == 'title':
+                    key = 'title_plaintext'
+                item = getattr(row, key)
+                values.append(self.serializer_cell(item))
+            output += format_row(values)
+            
+        return output
