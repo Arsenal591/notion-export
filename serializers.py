@@ -41,9 +41,10 @@ class SerializerFactory:
 
 
 class Seralizer:
-    def __init__(self, block: Block, level=0):
+    def __init__(self, block: Block, **kwargs):
         self.block = block
-        self.level = level
+        self.level = kwargs.get('level', 0)
+        self.is_reference = kwargs.get('is_reference', False)
 
     def serialize(self) -> str:
         raise NotImplementedError
@@ -98,11 +99,15 @@ class DividerBlockSerializer(Seralizer):
 # todo: add a state machine here, to add extra \n after listblock, quoteblock etc
 class PageBlockSerializer(Seralizer):
     def serialize(self) -> str:
-        texts = []
-        f = SerializerFactory()
-        for child in self.block.children:
-            texts.append(f.get_serializer(child).serialize())
-        return ''.join(texts)
+        if self.is_reference:
+            return '[{}]({}.md)\n'.format(self.block.title, self.block.title)
+        else:
+            texts = []
+            f = SerializerFactory()
+            for child in self.block.children:
+                texts.append(f.get_serializer(child, is_reference=True).serialize())
+            return ''.join(texts)
+
 
     def write(self):
         with open(self.block.title + ".md", "w", encoding='utf-8') as f:
