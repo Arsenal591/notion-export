@@ -104,6 +104,10 @@ class PageBlockSerializer(Seralizer):
             texts.append(f.get_serializer(child).serialize())
         return ''.join(texts)
 
+    def write(self):
+        with open(self.block.title + ".md", "w", encoding='utf-8') as f:
+            f.write(self.serialize())
+
 
 class ImageBlockSerializer(Seralizer):
     def serialize(self) -> str:
