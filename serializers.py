@@ -3,15 +3,26 @@ from pathlib import Path
 
 from notion.block import *
 from notion.collection import TableView, CollectionRowBlock
+from notion.client import NotionClient
 from PIL import Image
 import requests
 
 from patch import PatchedTextBlock
+from worker import JobWorker
+
+
+def download_image(url, path):
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        raise Exception(resp.text)
+    img = Image.open(BytesIO(resp.content))  # type: Image.Image
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+    img.save(path)
 
 
 class Controller:
     def __init__(self):
-        pass
+        self.worker = JobWorker()
 
     def get_serializer(self, block: BasicBlock, **kwargs):
         serializer_class = {
@@ -118,19 +129,16 @@ class PageBlockSerializer(Seralizer):
 class ImageBlockSerializer(Seralizer):
     def serialize(self) -> str:
         url_full = self.block.source
-        resp = requests.get(url_full)
-        if resp.status_code != 200:
-            raise Exception(resp.text)
-        img = Image.open(BytesIO(resp.content)) # type: Image.Image
         url_parsed = requests.utils.urlparse(url_full)
-        file_name = os.path.basename(url_parsed.path)
+        base, ext = os.path.splitext(os.path.basename(url_parsed.path))
+        if ext == '':  # when file name is '.png', ext is empty and '.png' is treated as base
+            base, ext = ext, base
 
-        Path("images").mkdir(exist_ok=True)
-        if os.path.exists("images/" + file_name):
-            base, ext = os.path.splitext(file_name)
-            file_name = "{}-{}{}".format(base, url_parsed.path.split('/')[-2], ext)
-        img.save("images/" + file_name)
-        return "![{}]({} \"{}\")\n".format(self.block.caption, "images/" + file_name, self.block.caption)
+        file_name = "{}-{}{}".format(base, url_parsed.path.split('/')[-2], ext)
+        file_path = "images/" + file_name
+
+        self.controller.worker.submit_job(url_full, download_image, url_full, file_path)
+        return "![{}]({} \"{}\")\n".format(self.block.caption, file_path, self.block.caption)
 
 
 class TodoBlockSerializer(Seralizer):
