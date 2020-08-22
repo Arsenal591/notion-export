@@ -11,18 +11,18 @@ from patch import PatchedTextBlock
 from worker import JobWorker
 
 
-def download_image(url, path):
-    resp = requests.get(url)
-    if resp.status_code != 200:
-        raise Exception(resp.text)
-    img = Image.open(BytesIO(resp.content))  # type: Image.Image
-    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    img.save(path)
-
-
 class Controller:
     def __init__(self):
         self.worker = JobWorker()
+
+    def _download_s3_image(self, url, path):
+        print("_download_s3_image")
+        resp = requests.get(url)
+        if resp.status_code != 200:
+            raise Exception(resp.text)
+        img = Image.open(BytesIO(resp.content))  # type: Image.Image
+        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+        img.save(path)
 
     def get_serializer(self, block: BasicBlock, **kwargs):
         serializer_class = {
@@ -137,7 +137,7 @@ class ImageBlockSerializer(Seralizer):
         file_name = "{}-{}{}".format(base, url_parsed.path.split('/')[-2], ext)
         file_path = "images/" + file_name
 
-        self.controller.worker.submit_job(url_full, download_image, url_full, file_path)
+        self.controller.worker.submit_job(url_full, self.controller._download_s3_image, url_full, file_path)
         return "![{}]({} \"{}\")\n".format(self.block.caption, file_path, self.block.caption)
 
 
