@@ -109,8 +109,10 @@ class PageBlockSerializer(Seralizer):
             return ''.join(texts)
 
 
-    def write(self):
-        with open(self.block.title + ".md", "w", encoding='utf-8') as f:
+    def write(self, path=None):
+        if not path:
+            path = self.block.title
+        with open(path + ".md", "w", encoding='utf-8') as f:
             f.write(self.serialize())
 
 
