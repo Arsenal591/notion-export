@@ -12,8 +12,9 @@ from worker import JobWorker
 
 
 class Controller:
-    def __init__(self):
+    def __init__(self, token_v2: str):
         self.worker = JobWorker()
+        self.notion_cli = NotionClient(token_v2=token_v2)
 
     def _download_s3_image(self, url, path):
         print("_download_s3_image")
@@ -23,6 +24,10 @@ class Controller:
         img = Image.open(BytesIO(resp.content))  # type: Image.Image
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
         img.save(path)
+
+    def _download_notion_page(self, id, path):
+        page = self.notion_cli.get_block(id)
+        self.get_serializer(page).write(path=path)
 
     def get_serializer(self, block: BasicBlock, **kwargs):
         serializer_class = {
@@ -111,7 +116,9 @@ class DividerBlockSerializer(Seralizer):
 class PageBlockSerializer(Seralizer):
     def serialize(self) -> str:
         if self.is_reference:
-            return '[{}]({}.md)\n'.format(self.block.title, self.block.title)
+            file_path = self.block.title + ".md"
+            self.controller.worker.submit_job(self.block.id, self.controller._download_notion_page, self.block.id, file_path)
+            return '[{}]({})\n'.format(self.block.title, file_path)
         else:
             texts = []
             for child in self.block.children:
@@ -121,8 +128,8 @@ class PageBlockSerializer(Seralizer):
 
     def write(self, path=None):
         if not path:
-            path = self.block.title
-        with open(path + ".md", "w", encoding='utf-8') as f:
+            path = self.block.title + ".md"
+        with open(path, "w", encoding='utf-8') as f:
             f.write(self.serialize())
 
 
