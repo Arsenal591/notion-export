@@ -9,7 +9,7 @@ import requests
 from patch import PatchedTextBlock
 
 
-class SerializerFactory:
+class Controller:
     def __init__(self):
         pass
 
@@ -37,12 +37,13 @@ class SerializerFactory:
             AudioBlock: MediaBlockSerializer,
             PDFBlock: MediaBlockSerializer,
         }[type(block)]
-        return serializer_class(block, **kwargs)
+        return serializer_class(block, controller=self, **kwargs)
 
 
 class Seralizer:
     def __init__(self, block: Block, **kwargs):
         self.block = block
+        self.controller = kwargs['controller']  # type: Controller
         self.level = kwargs.get('level', 0)
         self.is_reference = kwargs.get('is_reference', False)
 
@@ -76,9 +77,8 @@ class AbstractListBlockSerializer(Seralizer):
     mark = None
     def serialize(self) -> str:
         texts = [" " * (2 * self.level) + self.mark + " {}\n".format(self.block.title)]
-        f = SerializerFactory()
         for child in self.block.children:
-            texts.append(f.get_serializer(child, level=self.level + 1).serialize())
+            texts.append(self.controller.get_serializer(child, level=self.level + 1).serialize())
         return ''.join(texts)
 
 class UnorderedListBlockSerializer(AbstractListBlockSerializer):
@@ -103,9 +103,8 @@ class PageBlockSerializer(Seralizer):
             return '[{}]({}.md)\n'.format(self.block.title, self.block.title)
         else:
             texts = []
-            f = SerializerFactory()
             for child in self.block.children:
-                texts.append(f.get_serializer(child, is_reference=True).serialize())
+                texts.append(self.controller.get_serializer(child, is_reference=True).serialize())
             return ''.join(texts)
 
 
