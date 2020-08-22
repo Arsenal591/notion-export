@@ -1,4 +1,4 @@
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 
 
@@ -6,7 +6,7 @@ class JobWorker:
     def __init__(self):
         self.task_set = set()
         self.lock = Lock()
-        self.executor = ProcessPoolExecutor(max_workers=32)
+        self.executor = ThreadPoolExecutor(max_workers=4)
 
     def submit_job(self, id, func, *args):
         self.lock.acquire()
