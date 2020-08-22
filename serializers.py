@@ -17,7 +17,6 @@ class Controller:
         self.notion_cli = NotionClient(token_v2=token_v2)
 
     def _download_s3_image(self, url, path):
-        print("_download_s3_image")
         resp = requests.get(url)
         if resp.status_code != 200:
             raise Exception(resp.text)
