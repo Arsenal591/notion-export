@@ -151,6 +151,8 @@ class TableSerializer(Seralizer):
         block = self.block  # type: CollectionViewBlock
         schema = block.collection.get("schema")
         order = list(schema.keys())
+
+        # If there is a table view, use that to determine columns' order
         for view in block.views:
             if isinstance(view, TableView):
                 order = [x['property'] for x in view.get('format.table_properties') if x['property']  in schema]
@@ -163,9 +165,13 @@ class TableSerializer(Seralizer):
         for row in block.collection.get_rows():
             values = []
             for key in order:
-                if key == 'title':
-                    key = 'title_plaintext'
-                item = getattr(row, key)
+                if schema.get(key)['type'] in ['created_by', 'last_edited_by']:  # To meet with Notion.so's API change.
+                    user_id = row.get(schema.get(key)['type'] + '_id')
+                    item = row._client.get_user(user_id)
+                else:
+                    if key == 'title':  # Use title plaintext
+                        key = 'title_plaintext'
+                    item = getattr(row, key)
                 values.append(self.serializer_cell(item))
             output += format_row(values)
             
