@@ -62,6 +62,20 @@ class DividerBlockSerializer(Seralizer):
 
 # todo: add a state machine here, to add extra \n after listblock, quoteblock etc
 class PageBlockSerializer(Seralizer):
+    @staticmethod
+    def is_list_block(block: Block):
+        return type(block) in [BulletedListBlock, NumberedListBlock, TodoBlock]
+
+    @staticmethod
+    def is_normal_block(block: Block):
+        return type(block) in [TextBlock, PageBlock]
+
+    @staticmethod
+    def should_insert_break_line(prev: Block, next: Block):
+        if PageBlockSerializer.is_list_block(prev):
+            return PageBlockSerializer.is_normal_block(next)
+        return False
+
     def serialize(self) -> str:
         if self.is_reference:
             file_path = self.block.title + ".md"
@@ -69,8 +83,12 @@ class PageBlockSerializer(Seralizer):
             return '[{}]({})\n'.format(self.block.title, file_path)
         else:
             texts = []
-            for child in self.block.children:
+            for idx in range(len(self.block.children)):
+                child = self.block.children[idx]
                 texts.append(self.controller.get_serializer(child, is_reference=True).serialize())
+                if idx < len(self.block.children) - 1:
+                    if self.should_insert_break_line(child, self.block.children[idx + 1]):
+                        texts.append('\n')
             return ''.join(texts)
 
 
