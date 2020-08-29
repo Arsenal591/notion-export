@@ -1,5 +1,6 @@
 from notion.block import *
-from notion.collection import TableView, CollectionRowBlock
+from notion.collection import TableView, CollectionRowBlock, NotionDate
+from notion.user import User as NotionUser
 
 import requests
 
@@ -131,6 +132,18 @@ class TableSerializer(Seralizer):
             return ",".join([self.serializer_cell(x) for x in item])
         if isinstance(item, Block):
             return item.title
+        if isinstance(item, NotionUser):
+            return item.full_name
+        if isinstance(item, NotionDate):
+            if item.end is not None:
+                return "{} to {}".format(str(item.start), str(item.end))
+            else:
+                return str(item.start)
+        if isinstance(item, bool):
+            if item == True:
+                return "√"
+            else:
+                return "×"
         return str(item)
 
 
