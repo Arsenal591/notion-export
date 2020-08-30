@@ -7,15 +7,18 @@ from notion.block import *
 from PIL import Image
 import requests
 
+
+from config import GlobalConfig
 from patch import PatchedTextBlock
 from serializers import *
 from worker import JobWorker
 
 class Controller:
-    def __init__(self, token_v2: str):
+    def __init__(self, token_v2: str, config: GlobalConfig):
         self.worker = JobWorker()
         self.notion_cli = NotionClient(token_v2=token_v2)
         self.token_v2 = token_v2
+        self.config = config
 
     def _download_s3_image(self, url, path):
         resp = requests.get(url, cookies={'token_v2': self.token_v2})
@@ -53,4 +56,4 @@ class Controller:
             AudioBlock: MediaBlockSerializer,
             PDFBlock: MediaBlockSerializer,
         }[type(block)]
-        return serializer_class(block, controller=self, **kwargs)
+        return serializer_class(block, controller=self, config=self.config, **kwargs)

@@ -5,6 +5,8 @@ from notion.user import User as NotionUser
 import requests
 from urllib.parse import urlencode, urlparse
 
+from config import GlobalConfig
+
 
 class Seralizer:
     def __init__(self, block: Block, **kwargs):
@@ -12,6 +14,7 @@ class Seralizer:
         self.controller = kwargs['controller']  # type: Controller
         self.level = kwargs.get('level', 0)
         self.is_reference = kwargs.get('is_reference', False)
+        self.config = kwargs.get('config')  # type: GlobalConfig
 
     def serialize(self) -> str:
         raise NotImplementedError
@@ -118,6 +121,18 @@ class ImageBlockSerializer(Seralizer):
 
 
     def serialize(self) -> str:
+        image_format = "![{}]({} \"{}\")\n"
+
+        store_type = self.config.image_config.store
+        if store_type == 'blank':
+            return ""
+        if store_type == 's3':
+            return image_format.format(self.block.caption, self.block.source, self.block.caption)
+        if store_type == 'notion':
+            notion_url = self.reformatted_url()
+            return image_format.format(self.block.caption, notion_url, self.block.caption)
+
+
         url_full = self.block.source
         url_parsed = requests.utils.urlparse(url_full)
         base, ext = os.path.splitext(os.path.basename(url_parsed.path))
@@ -129,7 +144,7 @@ class ImageBlockSerializer(Seralizer):
 
         download_url = self.reformatted_url()
         self.controller.worker.submit_job(url_full, self.controller._download_s3_image, download_url, file_path)
-        return "![{}]({} \"{}\")\n".format(self.block.caption, file_path, self.block.caption)
+        return image_format.format(self.block.caption, file_path, self.block.caption)
 
 
 class TodoBlockSerializer(Seralizer):
