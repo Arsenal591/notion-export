@@ -3,6 +3,7 @@ from notion.collection import TableView, CollectionRowBlock, NotionDate
 from notion.user import User as NotionUser
 
 import requests
+from urllib.parse import urlencode, urlparse
 
 
 class Seralizer:
@@ -101,6 +102,21 @@ class PageBlockSerializer(Seralizer):
 
 
 class ImageBlockSerializer(Seralizer):
+    def reformatted_url(self):
+        url_original = self.block.source
+        url_parsed = requests.utils.urlparse(url_original)
+        quoted = requests.utils.quote("{}://{}{}".format(url_parsed.scheme, url_parsed.hostname, url_parsed.path), safe="")
+        reformatted_url = "https://notion.so/image/" + quoted
+        query = {
+            'table': 'block',
+            'id': self.block.id,
+            'userId': self.block._client.current_user.id,
+            'cache': 'v2'
+        }
+        query_str = urlencode(query)
+        return reformatted_url + '?' + query_str
+
+
     def serialize(self) -> str:
         url_full = self.block.source
         url_parsed = requests.utils.urlparse(url_full)
@@ -111,7 +127,8 @@ class ImageBlockSerializer(Seralizer):
         file_name = "{}-{}{}".format(base, url_parsed.path.split('/')[-2], ext)
         file_path = "images/" + file_name
 
-        self.controller.worker.submit_job(url_full, self.controller._download_s3_image, url_full, file_path)
+        download_url = self.reformatted_url()
+        self.controller.worker.submit_job(url_full, self.controller._download_s3_image, download_url, file_path)
         return "![{}]({} \"{}\")\n".format(self.block.caption, file_path, self.block.caption)
 
 

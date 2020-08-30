@@ -15,9 +15,10 @@ class Controller:
     def __init__(self, token_v2: str):
         self.worker = JobWorker()
         self.notion_cli = NotionClient(token_v2=token_v2)
+        self.token_v2 = token_v2
 
     def _download_s3_image(self, url, path):
-        resp = requests.get(url)
+        resp = requests.get(url, cookies={'token_v2': self.token_v2})
         if resp.status_code != 200:
             raise Exception(resp.text)
         img = Image.open(BytesIO(resp.content))  # type: Image.Image
