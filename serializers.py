@@ -19,8 +19,8 @@ class Seralizer:
 
 class TextSerializer(Seralizer):
     def serialize(self) -> str:
-        if self.block.title:
-            return " " * (2 * self.level) + self.block.title + '\n'
+        if self.block.raw_data:
+            return " " * (2 * self.level) + self.block.raw_data + '\n'
         return ''
 
 

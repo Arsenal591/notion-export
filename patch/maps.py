@@ -29,7 +29,7 @@ def patched_property_map(
     def api2py(x, client=None):
         x = x or [[""]]
         if markdown:
-            x = patched_notion_to_markdown(x)
+            x = patched_notion_to_markdown(x, client=client)
         kwargs = {}
         if "client" in signature(api_to_python).parameters:
             kwargs["client"] = client

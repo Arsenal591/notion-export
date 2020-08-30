@@ -3,7 +3,7 @@ import re
 from notion.markdown import FORMAT_PRECEDENCE, _NOTION_TO_MARKDOWN_MAPPER, delimiters
 
 
-def patched_notion_to_markdown(notion):
+def patched_notion_to_markdown(notion, client=None):
 
     markdown_chunks = []
 
@@ -35,7 +35,7 @@ def patched_notion_to_markdown(notion):
             else -1,
         )
 
-        is_equation = False
+        is_inline = False
         for f in sorted_format:
             if f[0] in _NOTION_TO_MARKDOWN_MAPPER:
                 if stripped:
@@ -43,10 +43,13 @@ def patched_notion_to_markdown(notion):
             if f[0] == "a":
                 markdown += "["
             if f[0] == "e":
-                is_equation = True
+                is_inline = True
                 markdown += "$$"
+            if f[0] in ["u", "d", "p"]:
+                is_inline = True
 
-        if not is_equation:
+
+        if not is_inline:
             markdown += stripped
 
         for f in reversed(sorted_format):
@@ -57,6 +60,21 @@ def patched_notion_to_markdown(notion):
                 markdown += "]({})".format(f[1])
             if f[0] == "e":
                 markdown += "{}$$".format(f[1])
+            if f[0] == "u":
+                user = client.get_user(f[1])
+                markdown += "@" + user.full_name
+            if f[0] == "d":
+                start = f[1].get('start_date', None)
+                if f[1].get('start_time', None):
+                    start += ' ' + f[1]['start_time']
+                end = f[1].get('end_date', None)
+                if f[1].get('end_time', None):
+                    end += ' ' + f[1]['end_time']
+                markdown += start
+                if end:
+                    markdown += " to " + end
+            if f[0] == "p":
+                pass
 
         markdown += trailing_whitespace
 
